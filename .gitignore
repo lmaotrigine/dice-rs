@@ -1,0 +1,11 @@
+/target
+/result
+.direnv/
+.vscode/
+.idea/
+.DS_Store
+.venv/
+venv/
+.ruff_cache/
+
+coverage/

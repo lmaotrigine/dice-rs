@@ -1,0 +1,64 @@
+[package]
+name = "dice"
+version = "0.1.0-a"
+description = "An extensible dice engine"
+edition = "2024"
+license = "BSD-3-Clause"
+readme = "README.md"
+repository = "https://github.com/lmaotrigine/dice-rs"
+keywords = ["dice", "random", "rng", "prng", "dice-notation", "dice-roller"]
+categories = ["game-dev", "math", "random"]
+rust-version = "1.93"
+
+[dependencies]
+chumsky = "0.12"
+quick_cache = { version = "0.6", default-features = false, optional = true }
+rand = { version = "0.10", default-features = false }
+rand_pcg = { version = "0.10", optional = true }
+rand_xoshiro = { version = "0.8", optional = true }
+
+[dev-dependencies]
+criterion = "0.8"
+
+[features]
+default = ["pcg"]
+caching = ["dep:quick_cache"]
+pcg = ["sys_rng", "dep:rand_pcg"]
+sys_rng = ["rand/sys_rng"]
+xoshiro = ["sys_rng", "dep:rand_xoshiro"]
+
+[[bench]]
+name = "bench_roller"
+path = "benches/bench_roller.rs"
+harness = false
+required-features = ["sys_rng"]
+
+[[test]]
+name = "test_arguments"
+path = "tests/test_arguments.rs"
+required-features = ["sys_rng"]
+
+[[test]]
+name = "test_dice"
+path = "tests/test_dice.rs"
+required-features = ["sys_rng"]
+
+[[test]]
+name = "test_utils"
+path = "tests/test_utils.rs"
+required-features = ["sys_rng"]
+
+[profile.release]
+debug = 1
+
+[profile.release-lto]
+inherits = "release"
+opt-level = 2
+debug = "none"
+strip = "symbols"
+debug-assertions = false
+overflow-checks = false
+lto = "fat"
+panic = "abort"
+incremental = false
+codegen-units = 1

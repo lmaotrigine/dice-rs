@@ -1,0 +1,48 @@
+on:
+  push:
+    branches:
+      - mistress
+  pull_request:
+    branches:
+      - mistress
+    types: [opened, reopened, synchronize]
+  merge_group:
+
+jobs:
+  lint-and-test:
+    env:
+      CARGO_TERM_COLOR: always
+    strategy:
+      fail-fast: false
+      matrix:
+        rust:
+          - 1.93
+          - stable
+          - nightly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt,clippy
+      - name: Cache rust stuff
+        uses: actions/cache@v5
+        with:
+          path: |
+            ./target
+            ./fuzz/target
+            ~/.cargo/git
+            ~/.cargo/registry
+            ~/.rustup
+          key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}-${{ matrix.rust }}
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just,cargo-hack,cargo-nextest
+      - name: Run CI
+        run: |
+          cd ${{ github.workspace }}
+          just ci

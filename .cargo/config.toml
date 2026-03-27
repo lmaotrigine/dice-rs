@@ -1,0 +1,27 @@
+[build]
+rustflags = [
+  "-C", "symbol-mangling-version=v0",
+  "-Wunused-crate-dependencies",
+]
+
+[target.'cfg(any(target_env = "musl", target_env = "musleabihf"))']
+rustflags = [
+  "-C", "target-feature=+crt-static",
+  "-C", "link-self-contained=yes",
+]
+
+[target.'cfg(windows)']
+rustflags = [
+  "-C", "target-feature=+crt-static",
+]
+
+[target.'cfg(unix)']
+linker = "clang"
+rustflags = [
+  "-C", "link-arg=-fuse-ld=lld",
+]
+
+[target.'cfg(target_os = "linux")']
+rustflags = [
+  "-C", "link-arg=-Wl,--compress-debug-sections=zlib",
+]

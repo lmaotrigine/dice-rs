@@ -1,0 +1,52 @@
+on:
+  push:
+    branches:
+      - mistress
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+      - name: Cache rust stuff
+        uses: actions/cache@v5
+        with:
+          path: |
+            ./target
+            ./fuzz/target
+            ~/.cargo/git
+            ~/.cargo/registry
+            ~/.rustup
+          key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}-nightly
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+      - uses: actions/configure-pages@v5
+        id: pages
+      - name: Build docs
+        run: |
+          cd ${{ github.workspace }}
+          just doc
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: target/doc
+  deploy:
+    needs: docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v5
+        id: deployment
